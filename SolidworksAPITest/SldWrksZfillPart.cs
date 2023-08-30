@@ -1,11 +1,6 @@
 ﻿/**
  * 
  *  Solidworks API wrapper in C#
- *  Working for opening a part\asm and modyifing dimensions
- *  More to come!
- *  
- *  See below link for saving DWG as PDF
- *  https://help.solidworks.com/2019/english/api/sldworksapi/save_file_as_pdf_example_csharp.htm
  * 
  *  Author: John Glatts
  *  Date: 8/29/23
@@ -20,13 +15,12 @@ using SolidWorks.Interop.sldworks;
 class SldWrksZfillPart {
 
     private String path;
-
     public SldWrksZfillPart(String path) {
         this.path = path;
     }
 
     // Change Zfill part 
-    public void changePart(ISldWorks app)
+    public void changePart(ISldWorks app, PartDimension part_dims)
     {
         ModelDoc2 default_dwg = null;
         Dimension swDim = null;
@@ -39,17 +33,44 @@ class SldWrksZfillPart {
         }
 
         // get and change part length
-        getPartSelection(default_dwg, ref swDim, "Boss-Extrude1", "BODYFEATURE", "D1");
-        changePartDimensions(default_dwg, swDim, 105);
-
+        getPartSelection(default_dwg, ref swDim, "Boss-Extrude1", "BODYFEATURE", "D1", "length");
+        changePartDimensions(default_dwg, swDim, part_dims.length / 1000);
 
         // get and change part height
-        getPartSelection(default_dwg, ref swDim, "Sketch1", "SKETCH", "D2");
-        changePartDimensions(default_dwg, swDim, 10);
+        getPartSelection(default_dwg, ref swDim, "Sketch1", "SKETCH", "D2", "height");
+        changePartDimensions(default_dwg, swDim, part_dims.height / 1000);
+
+        // get and change part width
+        part_dims.width = (part_dims.width / 25.4) - .002;
+        getPartSelection(default_dwg, ref swDim, "Sketch1", "SKETCH", "D5", "width");
+        changePartDimensions(default_dwg, swDim, part_dims.width / 39.37);
+
+        // get and change keepoff, unit in mm
+        getPartSelection(default_dwg, ref swDim, "Sketch1", "SKETCH", "D4", "keepoff");
+        changePartDimensions(default_dwg, swDim, part_dims.keep_off / 1000);
+
+        // get and change wire pitch
+        getPartSelection(default_dwg, ref swDim, "Sketch3", "SKETCH", "D3", "pitch");
+        changePartDimensions(default_dwg, swDim, part_dims.pitch / 39.37);
+
+        // get and change number of wires
+        int num_wires = Convert.ToInt32(((part_dims.length / 25.4) - .01) / part_dims.pitch);
+        Console.WriteLine("Computed Num Wires = " + num_wires + "\n\n");
+        getPartSelection(default_dwg, ref swDim, "Sketch3", "SKETCH", "D4", "num_wires");
+        changePartDimensions(default_dwg, swDim, num_wires);
+
+        // get and change wire span
+        double wire_span = (num_wires-1) * part_dims.pitch;
+        Console.WriteLine("Computed Wire Span = " + wire_span + "in\n\n");
+        getPartSelection(default_dwg, ref swDim, "Sketch3", "SKETCH", "D1", "wire_span");
+        changePartDimensions(default_dwg, swDim, wire_span / 39.37);
+
+        // update the drawing
+        SldWrksDrw.updatePartDrawing(app, @"Z:\Manufacturing\SWAutomation\Zfill-default.SLDDRW");
     }
 
     // Select a feature\sketch from the part
-    private void getPartSelection(ModelDoc2 doc, ref Dimension swDim, String name, String swType, String dim)
+    private void getPartSelection(ModelDoc2 doc, ref Dimension swDim, String name, String swType, String dim, String valName)
     {
         Feature swFeature;
         SelectionMgr swSelectionManager;
@@ -59,17 +80,16 @@ class SldWrksZfillPart {
         swFeature = (Feature)swSelectionManager.GetSelectedObject6(1, -1);
         swDim = (Dimension)swFeature.Parameter(dim);
         double dim_mm = Convert.ToDouble(swDim.SystemValue.ToString());
-        Console.WriteLine("the dim is " + (dim_mm * 1000) + "mm");
+        Console.WriteLine("the dim of " + valName + " is " + (dim_mm * 1000) + "mm");
     }
 
     // Change part dimensnions after a call to getPartSelection
-    private void changePartDimensions(ModelDoc2 doc, Dimension swDim, int new_val_int)
+    private void changePartDimensions(ModelDoc2 doc, Dimension swDim, double new_val)
     {
-        double new_val = new_val_int / 1000.0;
         swDim.SetSystemValue3(new_val, 1, null);
         doc.EditRebuild3();
         double dim_mm = Convert.ToDouble(swDim.SystemValue.ToString());
-        Console.WriteLine("the dim is " + (dim_mm * 1000) + "mm after change");
+        Console.WriteLine("the dim is " + (dim_mm * 1000) + "mm after change\n");
     }
 
 }

@@ -1,10 +1,8 @@
 ﻿/**
  * 
  *  Solidworks API wrapper in C#
- *  Working for opening a part\asm and modyifing dimensions
- *  More to come!
  * 
- *  Author: John Glatts
+ * Author: John Glatts
  *  Date: 8/29/23
  */
 using System;

@@ -13,3 +13,22 @@ enum PartTypes
     ASM = 2,
     DWG = 3,
 }
+
+class PartDimension{
+    public double length;
+    public double width;
+    public double height;
+    public double pitch;
+    public double keep_off;
+
+    public PartDimension(double length, double width, double height, double pitch, double keep_off) 
+    {
+        this.length = length;
+        this.width = width;
+        this.height = height;
+        this.pitch = pitch;
+        this.keep_off = keep_off;
+    }
+    
+
+}

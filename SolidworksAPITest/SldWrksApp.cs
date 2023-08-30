@@ -1,11 +1,6 @@
 ﻿/**
  * 
  *  Solidworks API wrapper in C#
- *  Working for opening a part\asm and modyifing dimensions
- *  More to come!
- *  
- *  See below link for saving DWG as PDF
- *  https://help.solidworks.com/2019/english/api/sldworksapi/save_file_as_pdf_example_csharp.htm
  * 
  *  Author: John Glatts
  *  Date: 8/29/23
@@ -13,6 +8,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using SolidWorks.Interop.sldworks;
@@ -31,31 +27,18 @@ class SldWrksApp {
         app = OpenSldWrksApp.getApp();
     }
 
-    // Create a new part drawing
-    private void createPartDrawing(String path) {
-        ModelDoc2 default_dwg = app.OpenDoc6(path, (int)PartTypes.DWG, 256, "", 0, 0);
-        
-        if (default_dwg == null) {
-            Console.WriteLine("error opening a drawing");
+    // Driver method to open, edit, and save a new part
+    public void makePart(PartDimension part_dims) { 
+        SldWrksZfillPart zfill = new SldWrksZfillPart(@"Z:\Manufacturing\SWAutomation\Zfill-default.SLDPRT");
+        if (app == null)
             return;
-        }
         
-    }
-
-    // Driver method to open, edit, and make a drawing of a part
-    public void run() {
-        SldWrksZfillPart zfill = new SldWrksZfillPart(@"Z:\Manufacturing\SWAutomation\Zfill-Default.SLDPRT");
-        if (app == null)  
-            return;
-
-        zfill.changePart(app);
-        
-        
+        zfill.changePart(app, part_dims);
     }
 
     // Class main method
     public static void Main(string[] args) {
-        new SldWrksApp().run();
+        new SldWrksApp().makePart(new PartDimension(60.0, 10.0, 6.0, .015, 4.0));
     }
 
 }

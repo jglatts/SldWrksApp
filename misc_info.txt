@@ -1,0 +1,17 @@
+Wrap these into a hash-map\similar
+Can use partnames as keys and values a string[]
+											- string[] can be the sketch names etc.
+
+
+Holddown  
+	D1@Sketch15
+	change sketch dimension to desired length
+
+Zfill (will need work with FeaturesAPI for length)
+	Length:     D1@Boss-Extrude1
+	Width:		D5@Sketch1
+	Height:		D2@Sketch1
+	Span:		D1@Sketch3
+	Pitch:		D3@Sketch3
+	Num_Wires:  D4@Sketch4
+
